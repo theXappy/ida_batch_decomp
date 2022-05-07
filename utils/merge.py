@@ -36,7 +36,8 @@ def merge(main_decomp_path, exports_decomp_path, out_file_path):
     print("Flushing & closing")
     out_file.flush()
     out_file.close()
-    print(f"Done. Output path: {out_file_path}")
+    print(f"Done. Output path:")
+    print(out_file_path)
 
 
 def main():
