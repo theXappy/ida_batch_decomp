@@ -3,7 +3,7 @@ import subprocess
 import sys
 from utils.merge import merge
 
-IDA_TERMINAL_EXE = "C:\\Program Files\\IDA 7.0\\idat64.exe"
+IDA_TERMINAL_EXE = "C:\\Program Files\\IDA 7.7\\idat64.exe"
 
 def delete_if_exists(file):
     if os.path.exists(file):
