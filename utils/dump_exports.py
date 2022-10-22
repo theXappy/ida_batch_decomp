@@ -10,6 +10,7 @@ from __future__ import print_function
 import ida_ida
 import ida_auto
 import ida_loader
+import ida_pro
 import ida_hexrays
 import ida_idp
 import ida_entry
@@ -27,7 +28,35 @@ def read_ptr(ea):
 def my_pointer_size():
     return 8 if  get_inf_structure().is_64bit() else 4
 
+
+def init_hexrays():
+    ALL_DECOMPILERS = {
+        ida_idp.PLFM_386: "hexrays",
+        ida_idp.PLFM_ARM: "hexarm",
+        ida_idp.PLFM_PPC: "hexppc",
+        ida_idp.PLFM_MIPS: "hexmips",
+    }
+    cpu = ida_idp.ph.id
+    decompiler = ALL_DECOMPILERS.get(cpu, None)
+    if not decompiler:
+        print("No known decompilers for architecture with ID: %d" % ida_idp.ph.id)
+        return False
+    if ida_ida.inf_is_64bit():
+        if cpu == ida_idp.PLFM_386:
+            decompiler = "hexx64"
+        else:
+            decompiler += "64"
+    if ida_loader.load_plugin(decompiler) and ida_hexrays.init_hexrays_plugin():
+        return True
+    else:
+        print('Couldn\'t load or initialize decompiler: "%s"' % decompiler)
+        return False
+
+
 def main():
+    print("// Initializing...") 
+    init_hexrays()
+    
     print("// Waiting for autoanalysis...") 
     if hasattr(idaapi, "auto_wait"): # IDA 7.4+
         idaapi.auto_wait()
@@ -85,7 +114,46 @@ def main():
             print('char* %s = "%s"; // IDA Variable: %s' % (exp_name, string_content, ida_variable))
         else:
             print('void* %s;' % exp_name)
-        
+    
+    
+    
+    
+    '''
+    print("//-------------------------------------------------------------------------")
+    print("// Methods"
+    # Reference:
+    # https://github.com/Cerberus-bytes/DragonBreath/blob/030650c2b4ad69b35df34008ed7f2c53e5a35776/src/Decompilers/IDA/DragonBreath-WriteFile.py
+    
+    
+    ida_path = ida_loader.get_path(ida_loader.PATH_TYPE_IDB)
+    c_path = "%s.c" % ida_path
+    
+    
+    print("Decompile Many...")
+    decompile_many(
+        "poop.c",
+        None,
+        ida_hexrays.VDRUN_NEWFILE|
+        ida_hexrays.VDRUN_SILENT|
+        ida_hexrays.VDRUN_MAYSTOP)
+    print("Decompile Many... -- DONE")
+    '''
+    
+    
+    
+
+    # Old code to print methods names/ method bodies into current file
+    '''
+    for ea in Functions():
+        functionName = get_func_name(ea)
+        print(functionName)
+        try:
+            decomp = decompile(ea)
+            print(decomp)
+        except Exception as ex:
+            print(ex)
+    '''    
+    
     if idaapi.cvar.batch:
         print("// All done, exiting.")
         ida_pro.qexit(0)
