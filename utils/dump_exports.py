@@ -29,11 +29,14 @@ def my_pointer_size():
 
 def main():
     print("// Waiting for autoanalysis...") 
-    ida_auto.auto_wait()
+    if hasattr(idaapi, "auto_wait"): # IDA 7.4+
+        idaapi.auto_wait()
+    else:
+        idaapi.autoWait() # Old IDA
 
     # SHAI: "Names" iterates over everything(?) that IDA gave a name to. Most importantly
-    # for use - string constants.
-    # Also lucky for us, IDA prefixes the names of Apple's CFString it resolves to start with "cfstr_".
+    # for us - string constants.
+    # Also, lucky for us, IDA prefixes the names of Apple's CFString it resolves to start with "cfstr_".
     resolved_strings = {}
     for ea, name in Names():
         # Looking specificly for CFString
@@ -55,7 +58,7 @@ def main():
     print("char **all_strings = {")
     for s in Strings():
         string_content = ida_bytes.get_strlit_contents(s.ea, s.length, s.strtype)
-        escaped = string_content.replace("\\","\\\\").replace("\"","\\\"")
+        escaped = string_content.decode().replace("\\","\\\\").replace("\"","\\\"")
         if escaped == string_content:
             print('\t"%s", // Address = %x , Length = %d , Type = %d' % (string_content, s.ea, s.length, s.strtype))
         else:
